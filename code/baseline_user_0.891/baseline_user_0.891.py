@@ -17,6 +17,9 @@ import seaborn as sns
 import gc
 from sklearn.model_selection import StratifiedKFold
 from dateutil.relativedelta import relativedelta
+import warnings
+warnings.filterwarnings('ignore')
+
 train_data = pd.read_csv('/Users/majiefeng/Desktop/研究生课程/数据挖掘/homework_jfma/个贷违约预测/code/baseline_user_0.891/raw_data/train_public.csv')
 submit_example = pd.read_csv('/Users/majiefeng/Desktop/研究生课程/数据挖掘/homework_jfma/个贷违约预测/code/baseline_user_0.891/raw_data/submit_example.csv')
 test_public = pd.read_csv('/Users/majiefeng/Desktop/研究生课程/数据挖掘/homework_jfma/个贷违约预测/code/baseline_user_0.891/raw_data/test_public.csv')
@@ -96,9 +99,10 @@ def workYearDIc(x):
 
 def findDig(val):
     fd = re.search('(\d+-)', val)
-    if fd is None: # no match, year-month
+    if fd is None: # no match, month-year format
         return '01-'+val
-    month, year = val.split("-")[0], val.split("-")[1]
+    # matched, year-month format
+    year, month = val.split("-")[0], val.split("-")[1]
     return '01-'+month+"-"+year
 
 
@@ -287,7 +291,7 @@ def train_model(data_, test_, y_, folds_):
     oof_preds = np.zeros(data_.shape[0])
     sub_preds = np.zeros(test_.shape[0])
     feature_importance_df = pd.DataFrame()
-    feats = [f for f in data_.columns if f not in ['loan_id', 'user_id', 'is_default'] ]
+    feats = [f for f in data_.columns if f not in ['loan_id', 'user_id', 'is_default', 'industry'] ]
     for n_fold, (trn_idx, val_idx) in enumerate(folds_.split(data_)):
         trn_x, trn_y = data_[feats].iloc[trn_idx], y_.iloc[trn_idx]
         val_x, val_y = data_[feats].iloc[val_idx], y_.iloc[val_idx]
@@ -353,9 +357,11 @@ def workYearDIc(x):
 
 def findDig(val):
     fd = re.search('(\d+-)', val)
-    if fd is None:
-        return '1-'+val
-    return val + '-01'
+    if fd is None: # no match, month-year format
+        return '01-'+val
+    # matched, year-month format
+    year, month = val.split("-")[0], val.split("-")[1]
+    return '01-'+month+"-"+year
 
 
 class_dict = {
